@@ -29,5 +29,5 @@ LEFT JOIN daily_activity last_month_activity
     AND last_month_activity.day < gs.all_days
     AND last_month_activity.day NOT BETWEEN gs.all_days - INTERVAL '7 days' AND gs.all_days
 
-WHERE last_week_activity.user_id IS NULL -- Garante que não esteja ativo na última semana
+WHERE last_week_activity.user_id IS NULL -- Guarantee the user has not been active in the last week.
 GROUP BY 1;
