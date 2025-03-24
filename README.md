@@ -24,8 +24,8 @@ SQL implementation of Duolingo's state-based growth framework for user retention
 | File | Purpose | Output Metrics |
 |------|---------|----------------|
 | `New Users.sql` | Tracks first-time activations | Daily new user counts |
-| `Current Users.sql` | Identifies daily active users (7-day window) | Current user counts |
-| `Reactivated Users.sql` | Detects users returning after 8-29 days inactivity | Reactivation volumes |
+| `Current Users.sql` | Users active today, who were also active in the past week | Current user counts |
+| `Reactivated Users.sql` | Detects users returning after 8-29 days inactivity | Reactivation counts |
 | `Resurrected Users.sql` | Flags users returning after 30+ days inactivity | Resurrection counts |
 | `At-Risk-WAU, At-Risk-MAU and Dormant Users.sql` | Predicts risk state transitions | At-risk population trends |
 | `Reactivation Rate.sql` | Calculates daily reactivation performance | ReactivationRateₜ = ReactivatedUserₜ/AtRiskMAUₜ₋₁ |
