@@ -1,51 +1,46 @@
-WITH key_risk_dates AS (
-    SELECT
-        day_analyzed,
-        user_id,
-        CASE 
-            WHEN DATE_PART('day', LEAST(current_date, (LEAD(day_analyzed) OVER (PARTITION BY user_id ORDER BY day_analyzed))) - day_analyzed) > 1 THEN day_analyzed + INTERVAL '1 day' 
-        END AS enter_at_risk_wau,
-        CASE 
-            WHEN DATE_PART('day', LEAST(current_date, (LEAD(day_analyzed) OVER (PARTITION BY user_id ORDER BY day_analyzed))) - day_analyzed) >= 7 THEN day_analyzed + INTERVAL '7 days' 
-        END AS enter_at_risk_mau,
-        CASE 
-            WHEN DATE_PART('day', LEAST(current_date, (LEAD(day_analyzed) OVER (PARTITION BY user_id ORDER BY day_analyzed))) - day_analyzed) >= 30 THEN day_analyzed + INTERVAL '30 days' 
-        END AS enter_dormant
-    FROM 
-        Activity
-    GROUP BY 1, 2
+WITH user_state_transitions AS (
+
+SELECT
+    
+user_id,
+day_analyzed AS current_activity_day,
+LAG(day_analyzed) OVER (PARTITION BY user_id ORDER BY day_analyzed) AS previous_activity_day,
+LEAD(day_analyzed) OVER (PARTITION BY user_id ORDER BY day_analyzed) AS next_activity_day,
+DATE_PART('day', day_analyzed - LAG(day_analyzed) OVER (PARTITION BY user_id ORDER BY day_analyzed)) AS days_since_last_activity
+    
+FROM Activity
 ),
 
-current_reactivated_ressurected AS (
-    SELECT
-        day_analyzed AS day,
-        COUNT(DISTINCT user_id) FILTER (WHERE days_between_activations > 0 AND days_between_activations <= 7) AS current_users,
-        COUNT(DISTINCT user_id) FILTER (WHERE days_between_activations > 7 AND days_between_activations <= 29) AS reactivated_users,
-        COUNT(DISTINCT user_id) FILTER (WHERE days_between_activations >= 30) AS ressurected_users
-    FROM (
-        SELECT
-            day_analyzed,
-            user_id,
-            DATE_PART('day', day_analyzed - LAG(day_analyzed) OVER (PARTITION BY user_id ORDER BY day_analyzed)) AS days_between_activations
-        FROM 
-            Activity
-        GROUP BY 1, 2, 3
-    ) days_between_activations
-    GROUP BY 1
+daily_metrics AS (
+
+SELECT
+
+day_analyzed,
+    
+COUNT(DISTINCT CASE WHEN days_since_last_activity BETWEEN 8 AND 29 
+THEN user_id
+END) AS reactivated_users,
+
+COUNT(DISTINCT 
+CASE WHEN DATE_PART('day', day_analyzed - previous_activity_day) BETWEEN 7 AND 29
+AND previous_activity_day = day_analyzed - INTERVAL '1 day'
+THEN user_id 
+END) AS at_risk_mau_previous_day
+
+FROM user_state_transitions
+GROUP BY 1
 )
 
 SELECT
-    gs.all_days AS day,
-    crr.reactivated_users,
-    k.enter_at_risk_mau,
-    (crr.reactivated_users::FLOAT / NULLIF(k.enter_at_risk_mau, 0)) AS reactivation_rate
-FROM
-    generate_series('2023-01-01'::date, current_date, '1 day'::interval) AS gs(all_days)
-LEFT JOIN current_reactivated_ressurected crr ON crr.day = gs.all_days
-LEFT JOIN (
-    SELECT
-        enter_at_risk_mau AS mau_day,
-        COUNT(*) AS enter_at_risk_mau
-    FROM key_risk_dates
-    GROUP BY 1
-) k ON k.mau_day = gs.all_days - INTERVAL '1 day';
+
+dm.day_analyzed AS day,
+dm.reactivated_users,
+dm.at_risk_mau_previous_day,
+
+CASE WHEN dm.at_risk_mau_previous_day > 0 
+THEN (dm.reactivated_users::FLOAT / dm.at_risk_mau_previous_day) ELSE NULL
+END AS reactivation_rate
+
+FROM daily_metrics dm
+WHERE dm.day_analyzed BETWEEN '2023-03-01' AND '2023-07-31'
+ORDER BY 1
