@@ -14,11 +14,6 @@ SQL implementation of Duolingo's state-based growth framework for user retention
   - `At-Risk Users (WAU/MAU)`
   - `Dormant Users`
 
-- **Core Growth Metrics**
-  - Reactivation Rates
-  - State Transition Probabilities
-  - DAU Decomposition
-
 ## 🛠️ Files Overview
 
 | File | Purpose | Output Metrics |
