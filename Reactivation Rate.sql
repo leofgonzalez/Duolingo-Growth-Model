@@ -42,5 +42,4 @@ THEN (dm.reactivated_users::FLOAT / dm.at_risk_mau_previous_day) ELSE NULL
 END AS reactivation_rate
 
 FROM daily_metrics dm
-WHERE dm.day_analyzed BETWEEN '2023-03-01' AND '2023-07-31'
 ORDER BY 1
