@@ -1,6 +1,6 @@
 # Breaking Down DAU: A Data Engineer’s Guide to Duolingo’s Growth Model
 
-[![Medium Complete Article](https://img.shields.io/badge/Detailed_Explanations-Medium_Article-03a57a?style=flat&logo=medium)](https://medium.com/@leofgonzalez/how-can-data-engineers-apply-duolingos-growth-model-to-their-own-realities-at-its-full-potential-9456f31f5908)
+[![Medium Complete Article](https://img.shields.io/badge/Detailed_Explanations-Medium_Article-03a57a?style=flat&logo=medium)](https://medium.com/@leofgonzalez/breaking-down-dau-a-data-engineers-guide-to-duolingo-s-growth-model-cb1d608917c6))
 
 SQL implementation of Duolingo's state-based growth framework for user retention analysis. This repository provides production-ready queries to track user engagement states and transitions.
 
